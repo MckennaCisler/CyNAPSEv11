@@ -1,0 +1,11 @@
+read_verilog GexLeakUnit.v GinLeakUnit.v VmemLeakUnit.v  EPSCUnit.v IPSCUnit.v ThresholdUnit.v SynapticIntegrationUnit.v ConductanceLIFNeuronUnit.v
+hierarchy -check -top ConductanceLIFNeuronUnit
+proc
+opt
+techmap
+opt
+dfflibmap -liberty gscl45nm.lib
+abc -liberty gscl45nm.lib
+stat -liberty gscl45nm.lib
+opt
+write_verilog snn_neuron_syn.v

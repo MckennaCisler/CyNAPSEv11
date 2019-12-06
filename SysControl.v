@@ -100,6 +100,7 @@ module SysControl
 	wire [(BT_WIDTH-1):0] DeltaT_Extended; 
 
 	//Intermediates
+	// UEn1-3 are buffer shift registers for adding time delay (see below)
 	reg InDQ, AuxDQ, OutDQ, InREn, IntREn, UEn1, UEn2, UEn3, UEn, IRIS ; 
 	
 	//Resets

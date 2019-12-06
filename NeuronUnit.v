@@ -17,6 +17,7 @@ module NeuronUnit
 	parameter DATA_WIDTH = INTEGER_WIDTH + DATA_WIDTH_FRAC,
 	parameter DELTAT_WIDTH = 4, 
 	parameter TREF_WIDTH = 5, 
+	// note: the values of the "NEURON_WIDTH" constants are actually log_2(number of neurons), as is implied by the "width"
 	parameter NEURON_WIDTH_LOGICAL = 14,
 	parameter NEURON_WIDTH_PHYSICAL = 6,
 	parameter NEURON_WIDTH = NEURON_WIDTH_LOGICAL,
@@ -132,6 +133,8 @@ module NeuronUnit
 	
 
 	//Per-physical (On-Chip) RAM Signal copies
+	// Note: SPNRInputAddress indexes which row of logical neurons (where columns are physical neurons)
+	// we're currently writing status to (SPNRInputData) or reading status from (SPNROutputData)
 	reg SPNRChipEnable [(2**NEURON_WIDTH_PHYSICAL -1):0]; 
 	reg SPNRWriteEnable [(2**NEURON_WIDTH_PHYSICAL -1):0];
 	reg [(SPNR_ADDR_WIDTH-1):0] SPNRInputAddress [(2**NEURON_WIDTH_PHYSICAL -1):0];
@@ -317,14 +320,15 @@ module NeuronUnit
 						
 			if (MapNeurons) begin 
 		
-				
 				CurrentPhysical <= CurrentLogical%(2**NEURON_WIDTH_PHYSICAL);
 				SPNRChipEnable[CurrentPhysical] <= 1;
 				SPNRWriteEnable[CurrentPhysical] <= 1;
 				SPNRInputAddress[CurrentPhysical] <= (CurrentLogical == 0) ? 0 : CurrentLogical-1>>(NEURON_WIDTH_PHYSICAL);		
 
 				IDNID <= (CurrentLogical+NeuStart <= NeuEnd) ? CurrentLogical+NeuStart : 0;
+				// Invalid if not in the valid address range
 				IDValid <= (CurrentLogical+NeuStart <= NeuEnd)? 1 : 0;
+				// Choose inhibitory or excitatory value based on which address range the neuron is in
 				IDNtype <= ((CurrentLogical+NeuStart >= ExRangeLOWER) && (CurrentLogical+NeuStart <= ExRangeUPPER)) ? 0 : 1;
 				IDVmem <= ((CurrentLogical+NeuStart >= ExRangeLOWER) && (CurrentLogical+NeuStart <= ExRangeUPPER)) ? Vmem_Initial_EX : Vmem_Initial_IN;
 				IDGex <= ((CurrentLogical+NeuStart >= ExRangeLOWER) && (CurrentLogical+NeuStart <= ExRangeUPPER)) ? gex_Initial_EX : gex_Initial_IN;
@@ -373,8 +377,8 @@ module NeuronUnit
 					SPNRInputData[j][(3*DATA_WIDTH+TREF_WIDTH+3-1):3*DATA_WIDTH] <= (CurrentValid[j] == 1) ? RefValOut[j] : SPNRInputData[j][(3*DATA_WIDTH+TREF_WIDTH+3-1):3*DATA_WIDTH];
 
 					//Values Flushed after Update
-					SPNRInputData[j][(3*DATA_WIDTH -1):2*DATA_WIDTH] <= (CurrentValid[j] == 1) ? {DATA_WIDTH{1'b0}} : SPNRInputData[j][(3*DATA_WIDTH -1):2*DATA_WIDTH];
-					SPNRInputData[j][(2*DATA_WIDTH -1):DATA_WIDTH] <= (CurrentValid[j] == 1) ? {DATA_WIDTH{1'b0}} : SPNRInputData[j][(2*DATA_WIDTH -1):DATA_WIDTH];
+					SPNRInputData[j][(3*DATA_WIDTH -1):2*DATA_WIDTH] <= (CurrentValid[j] == 1) ? {DATA_WIDTH{1'b0}} : SPNRInputData[j][(3*DATA_WIDTH -1):2*DATA_WIDTH]; //IDExWeight
+					SPNRInputData[j][(2*DATA_WIDTH -1):DATA_WIDTH] <= (CurrentValid[j] == 1) ? {DATA_WIDTH{1'b0}} : SPNRInputData[j][(2*DATA_WIDTH -1):DATA_WIDTH]; //IDInWeight
 
 					//Values Don't Change 
 					SPNRInputData[j][(DATA_WIDTH-1):0] <= (CurrentValid[j] == 1) ? Threshold[j] : SPNRInputData[j][(DATA_WIDTH-1):0];

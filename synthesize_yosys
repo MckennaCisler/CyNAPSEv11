@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# usage: <verilog file>
+
+LIB=gscl45nm.lib
+
+yosys <<< "read_verilog $@
+synth
+dfflibmap -liberty $LIB
+abc -liberty $LIB
+stat -liberty $LIB
+opt
+write_verilog $1_syn.v"
