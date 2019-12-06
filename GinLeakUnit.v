@@ -12,7 +12,7 @@
 `timescale 1ns/1ns
 module GinLeakUnit
 #(
-	parameter INTEGER_WIDTH = 16, 
+	parameter INTEGER_WIDTH = 32,
 	parameter DATA_WIDTH_FRAC = 32,
 	parameter DATA_WIDTH = INTEGER_WIDTH + DATA_WIDTH_FRAC, 
 	parameter DELTAT_WIDTH = 4
