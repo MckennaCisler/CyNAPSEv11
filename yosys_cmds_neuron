@@ -4,6 +4,7 @@ proc
 opt
 techmap
 opt
+flatten
 dfflibmap -liberty gscl45nm.lib
 abc -liberty gscl45nm.lib
 stat -liberty gscl45nm.lib

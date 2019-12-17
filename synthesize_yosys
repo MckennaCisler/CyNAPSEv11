@@ -10,3 +10,4 @@ abc -liberty $LIB
 stat -liberty $LIB
 opt
 write_verilog $1_syn.v"
+

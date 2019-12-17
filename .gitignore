@@ -1,4 +1,10 @@
+genus.log*
+genus.cmd*
+genus_out
+fv
+
 gscl45nm.*
+
 cynapse
 a.out
 binaries/
