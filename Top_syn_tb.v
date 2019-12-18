@@ -13,187 +13,249 @@
 
 
 `timescale 1ns/1ns
-module Top_syn_tb();
-
+module Top_syn_tb_v2
+#(
 	//Global Timer resolution and limits
-	localparam DELTAT_WIDTH = 4;																			//Resolution upto 0.1 ms can be supported 
-	localparam BT_WIDTH_INT = 32;																			//2^32 supports 4,000M BT Units (ms) so for 500 ms exposure per example it can support 8M examples
-	localparam BT_WIDTH_FRAC = DELTAT_WIDTH;																//BT Follows resolution 
-	localparam BT_WIDTH = BT_WIDTH_INT + BT_WIDTH_FRAC;	
+	parameter DELTAT_WIDTH = 4,																			//Resolution upto 0.1 ms can be supported 
+	parameter BT_WIDTH_INT = 32,																			//2^32 supports 4,000M BT Units (ms) so for 500 ms exposure per example it can support 8M examples
+	parameter BT_WIDTH_FRAC = DELTAT_WIDTH,																//BT Follows resolution 
+	parameter BT_WIDTH = BT_WIDTH_INT + BT_WIDTH_FRAC,	
 
 	//Data precision 
-	localparam INTEGER_WIDTH = 32;																			//All Integer localparams should lie between +/- 2048
-	localparam DATA_WIDTH_FRAC = 32;																		//Selected fractional precision for all status data
-	localparam DATA_WIDTH = INTEGER_WIDTH + DATA_WIDTH_FRAC;
-	localparam TREF_WIDTH = 5;																				//Refractory periods should lie between +/- 16 (integer)
-	localparam EXTEND_WIDTH = (TREF_WIDTH+3)*2;																//For Refractory Value Arithmetic
+	parameter INTEGER_WIDTH = 32,																			//All Integer parameters should lie between +/- 2048
+	parameter DATA_WIDTH_FRAC = 32,																		//Selected fractional precision for all status data
+	parameter DATA_WIDTH = INTEGER_WIDTH + DATA_WIDTH_FRAC,
+	parameter TREF_WIDTH = 5,																				//Refractory periods should lie between +/- 16 (integer)
+	parameter EXTEND_WIDTH = (TREF_WIDTH+3)*2,																//For Refractory Value Arithmetic
 
 	//Neuron counts and restrictions
-	localparam NEURON_WIDTH_LOGICAL = 14;																	//For 2^14 = 16384 supported logical neurons
-	localparam NEURON_WIDTH = NEURON_WIDTH_LOGICAL;
-	localparam NEURON_WIDTH_INPUT = 11;																		//For 2^11 = 2048 supported input neurons
-	localparam NEURON_WIDTH_PHYSICAL = 6;																	//For 2^6 = 64 physical neurons on-chip
-	localparam TDMPOWER = NEURON_WIDTH_LOGICAL - NEURON_WIDTH_PHYSICAL;										//The degree of Time division multiplexing of logical to physical neurons
-	localparam INPUT_NEURON_START = 0;																		//Input neurons in Weight table starts from index: 0 
-	localparam LOGICAL_NEURON_START = 2**NEURON_WIDTH_INPUT;												//Logical neurons in Weight Table starts from index: 2048
+	parameter NEURON_WIDTH_LOGICAL = 14,																	//For 2^14 = 16384 supported logical neurons
+	parameter NEURON_WIDTH = NEURON_WIDTH_LOGICAL,
+	parameter NEURON_WIDTH_INPUT = 11,																		//For 2^11 = 2048 supported input neurons
+	parameter NEURON_WIDTH_PHYSICAL = 6,																	//For 2^6 = 64 physical neurons on-chip
+	parameter TDMPOWER = NEURON_WIDTH_LOGICAL - NEURON_WIDTH_PHYSICAL,										//The degree of Time division multiplexing of logical to physical neurons
+	parameter INPUT_NEURON_START = 0,																		//Input neurons in Weight table starts from index: 0 
+	parameter LOGICAL_NEURON_START = 2**NEURON_WIDTH_INPUT,												//Logical neurons in Weight Table starts from index: 2048
 
 	//On-chip Neuron status SRAMs
-	localparam SPNR_WORD_WIDTH = ((DATA_WIDTH*6)+(TREF_WIDTH+3)+ NEURON_WIDTH_LOGICAL + 1 + 1);				//Format : |NID|Valid|Ntype|Vmem|Gex|Gin|RefVal|ExWeight|InWeight|Vth| 
-	localparam SPNR_ADDR_WIDTH = TDMPOWER;																	//This many entries in each On-chip SRAM 
+	parameter SPNR_WORD_WIDTH = ((DATA_WIDTH*6)+(TREF_WIDTH+3)+ NEURON_WIDTH_LOGICAL + 1 + 1),				//Format : |NID|Valid|Ntype|Vmem|Gex|Gin|RefVal|ExWeight|InWeight|Vth| 
+	parameter SPNR_ADDR_WIDTH = TDMPOWER,																	//This many entries in each On-chip SRAM 
 	
 	//Off-Chip Weight RAM
-	localparam WRAM_WORD_WIDTH = DATA_WIDTH;																//Weight bit-width is same as all status data bit-width
-	localparam WRAM_ROW_WIDTH = 15;
-	localparam WRAM_NUM_ROWS = 2**NEURON_WIDTH_LOGICAL + 2**NEURON_WIDTH_INPUT;
-	localparam WRAM_COLUMN_WIDTH = NEURON_WIDTH_LOGICAL;  
-	localparam WRAM_NUM_COLUMNS = 2**NEURON_WIDTH_LOGICAL;
-	localparam WRAM_ADDR_WIDTH = WRAM_ROW_WIDTH + WRAM_COLUMN_WIDTH;										//ADDR_WIDTH = 2* NEURON_WIDTH + 1 (2*X^2 Synapses for X logical neurons and X input neurons) ?? Not Exactly but works in the present Configuration
+	parameter WRAM_WORD_WIDTH = DATA_WIDTH,																//Weight bit-width is same as all status data bit-width
+	parameter WRAM_ROW_WIDTH = 15,
+	parameter WRAM_NUM_ROWS = 2**NEURON_WIDTH_LOGICAL + 2**NEURON_WIDTH_INPUT,
+	parameter WRAM_COLUMN_WIDTH = NEURON_WIDTH_LOGICAL, 
+	parameter WRAM_NUM_COLUMNS = 2**NEURON_WIDTH_LOGICAL,
+	parameter WRAM_ADDR_WIDTH = WRAM_ROW_WIDTH + WRAM_COLUMN_WIDTH,										//ADDR_WIDTH = 2* NEURON_WIDTH + 1 (2*X^2 Synapses for X logical neurons and X input neurons) ?? Not Exactly but works in the present Configuration
 	
 	//Off-Chip Theta RAM
-	localparam TRAM_WORD_WIDTH = DATA_WIDTH;																//Vth bit-width = status bit-wdth
-	localparam TRAM_ADDR_WIDTH = NEURON_WIDTH_LOGICAL;														//Adaptive thresholds supported for all logical neurons
-	localparam TRAM_NUM_ROWS = 2**NEURON_WIDTH_LOGICAL;
-	localparam TRAM_NUM_COLUMNS = 1;
+	parameter TRAM_WORD_WIDTH = DATA_WIDTH,																//Vth bit-width = status bit-wdth
+	parameter TRAM_ADDR_WIDTH = NEURON_WIDTH_LOGICAL,														//Adaptive thresholds supported for all logical neurons
+	parameter TRAM_NUM_ROWS = 2**NEURON_WIDTH_LOGICAL,
+	parameter TRAM_NUM_COLUMNS = 1,
 	
 	
 	//Queues
-	localparam FIFO_WIDTH = 10;																				//1024 FIFO Queue Entries 
+	parameter FIFO_WIDTH = 10,																				//1024 FIFO Queue Entries 
 
 	//Memory initialization binaries
-	localparam WEIGHTFILE = "./binaries/Weights_SCWN_bin.mem";												//Binaries for Weights 
-	localparam THETAFILE = "./binaries/Theta_SCWN_bin.mem";	
+	parameter WEIGHTFILE = "./binaries/Weights_SCWN_bin.mem",												//Binaries for Weights 
+	parameter THETAFILE = "./binaries/Theta_SCWN_bin.mem",	
 	
 	//Real datatype conversion
-	localparam sfDATA = 2.0 **- 32.0;
-	localparam sfBT = 2.0 **- 4.0;
-
-
+	parameter sfDATA = 2.0 **- 32.0,
+	parameter sfBT = 2.0 **- 4.0
+)
+(
 	//Control Inputs
-	reg  Clock;
-	reg  Reset;
-	reg  Initialize;
-	reg  ExternalEnqueue;
-	reg  ExternalDequeue;
-	reg  Run;
+	input wire Clock,
+	input wire Reset,
+	input wire Initialize,
+	input wire ExternalEnqueue,
+	input wire ExternalDequeue,
+	input wire Run,
 
 	//AER Inputs
-	reg  [(BT_WIDTH-1):0] ExternalBTIn;
-	reg  [(NEURON_WIDTH-1):0] ExternalNIDIn;
+	input wire [(BT_WIDTH-1):0] ExternalBTIn,						  				  //Input AER Packet
+	input wire [(NEURON_WIDTH-1):0] ExternalNIDIn,                                    //"
 
 	//Global Inputs
-	reg  [(DELTAT_WIDTH-1):0] DeltaT;																//DeltaT = 0.5ms  
+	input wire [(DELTAT_WIDTH-1):0] DeltaT,                                           //Neuron Update or Global Biological Time Resolution 
 
 
 	//Network Information 
-	reg  [(NEURON_WIDTH-1):0] ExRangeLOWER;							
-	reg  [(NEURON_WIDTH-1):0] ExRangeUPPER;							
-	reg  [(NEURON_WIDTH-1):0] InRangeLOWER;							 	
-	reg  [(NEURON_WIDTH-1):0] InRangeUPPER;							
-	reg  [(NEURON_WIDTH-1):0] IPRangeLOWER;							
-	reg  [(NEURON_WIDTH-1):0] IPRangeUPPER;							
-	reg  [(NEURON_WIDTH-1):0] OutRangeLOWER;							
-	reg  [(NEURON_WIDTH-1):0] OutRangeUPPER;							
-	reg  [(NEURON_WIDTH-1):0] NeuStart;							 
-	reg  [(NEURON_WIDTH-1):0] NeuEnd;								 
-
+	input wire [(NEURON_WIDTH-1):0] ExRangeLOWER,					  //Excitatory Neuron Range
+	input wire [(NEURON_WIDTH-1):0] ExRangeUPPER,                                     //"
+	input wire [(NEURON_WIDTH-1):0] InRangeLOWER,                                     //Inhibitory Neuron Range		
+	input wire [(NEURON_WIDTH-1):0] InRangeUPPER,                                     //"
+	input wire [(NEURON_WIDTH-1):0] IPRangeLOWER,                                     //Input Neuron Range
+	input wire [(NEURON_WIDTH-1):0] IPRangeUPPER,                                     //"
+	input wire [(NEURON_WIDTH-1):0] OutRangeLOWER,                                    //Output Neuron Range
+	input wire [(NEURON_WIDTH-1):0] OutRangeUPPER,                                    //"
+	input wire [(NEURON_WIDTH-1):0] NeuStart,                                         //Minimum Actual NeuronID in current network 
+	input wire [(NEURON_WIDTH-1):0] NeuEnd, 
 	
 	//Status register initialization values
-	reg signed [(DATA_WIDTH-1):0] Vmem_Initial_EX;
-	reg signed [(DATA_WIDTH-1):0] gex_Initial_EX;
-	reg signed [(DATA_WIDTH-1):0] gin_Initial_EX;
+	input wire signed [(DATA_WIDTH-1):0] Vmem_Initial_EX,                             //Initial membrane voltage and conductances of Neurons for Pyramidal Cells			
+	input wire signed [(DATA_WIDTH-1):0] gex_Initial_EX,                              //"
+	input wire signed [(DATA_WIDTH-1):0] gin_Initial_EX,                              //"
 	
-	reg signed [(DATA_WIDTH-1):0] Vmem_Initial_IN;
-	reg signed [(DATA_WIDTH-1):0] gex_Initial_IN;
-	reg signed [(DATA_WIDTH-1):0] gin_Initial_IN;
+	input wire signed [(DATA_WIDTH-1):0] Vmem_Initial_IN,                             //for Basket cells
+	input wire signed [(DATA_WIDTH-1):0] gex_Initial_IN,                              //"	
+	input wire signed [(DATA_WIDTH-1):0] gin_Initial_IN,                              //"
 
 
 	//Neuron-specific characteristics	
-	reg signed [(INTEGER_WIDTH-1):0] RestVoltage_EX; 	
-	reg signed [(INTEGER_WIDTH-1):0] Taumembrane_EX; 	
-	reg signed [(INTEGER_WIDTH-1):0] ExReversal_EX;	
-	reg signed [(INTEGER_WIDTH-1):0] InReversal_EX; 	
-	reg signed [(INTEGER_WIDTH-1):0] TauExCon_EX;	
-	reg signed [(INTEGER_WIDTH-1):0] TauInCon_EX;	
-	reg signed [(TREF_WIDTH-1):0] Refractory_EX;		
-	reg signed [(INTEGER_WIDTH-1):0] ResetVoltage_EX;	
-	reg signed [(DATA_WIDTH-1):0] Threshold_EX;
-
-	reg signed [(INTEGER_WIDTH-1):0] RestVoltage_IN; 	
-	reg signed [(INTEGER_WIDTH-1):0] Taumembrane_IN; 	
-	reg signed [(INTEGER_WIDTH-1):0] ExReversal_IN;	
-	reg signed [(INTEGER_WIDTH-1):0] InReversal_IN; 	
-	reg signed [(INTEGER_WIDTH-1):0] TauExCon_IN;	
-	reg signed [(INTEGER_WIDTH-1):0] TauInCon_IN;	
-	reg signed [(TREF_WIDTH-1):0] Refractory_IN;		
-	reg signed [(INTEGER_WIDTH-1):0] ResetVoltage_IN;	
-	reg signed [(DATA_WIDTH-1):0] Threshold_IN;
+	input wire signed [(INTEGER_WIDTH-1):0] RestVoltage_EX,                           //Neuron Specific Characteristics for Pyramidal Cells
+	input wire signed [(INTEGER_WIDTH-1):0] Taumembrane_EX,                           
+	input wire signed [(INTEGER_WIDTH-1):0] ExReversal_EX,                            
+	input wire signed [(INTEGER_WIDTH-1):0] InReversal_EX,                            
+	input wire signed [(INTEGER_WIDTH-1):0] TauExCon_EX,                              	
+	input wire signed [(INTEGER_WIDTH-1):0] TauInCon_EX,                              
+	input wire signed [(TREF_WIDTH-1):0] Refractory_EX,                               
+	input wire signed [(INTEGER_WIDTH-1):0] ResetVoltage_EX,                          
+	input wire signed [(DATA_WIDTH-1):0] Threshold_EX,                                
+	
+	input wire signed [(INTEGER_WIDTH-1):0] RestVoltage_IN,                           //for Basket Cells
+	input wire signed [(INTEGER_WIDTH-1):0] Taumembrane_IN, 				
+	input wire signed [(INTEGER_WIDTH-1):0] ExReversal_IN,						
+	input wire signed [(INTEGER_WIDTH-1):0] InReversal_IN, 						
+	input wire signed [(INTEGER_WIDTH-1):0] TauExCon_IN,						
+	input wire signed [(INTEGER_WIDTH-1):0] TauInCon_IN,						
+	input wire signed [(TREF_WIDTH-1):0] Refractory_IN,							
+	input wire signed [(INTEGER_WIDTH-1):0] ResetVoltage_IN,					
+	input wire signed [(DATA_WIDTH-1):0] Threshold_IN,							
 
 	//AER Outputs
-	wire [(BT_WIDTH-1):0] ExternalBTOut;
-	wire [(NEURON_WIDTH-1):0] ExternalNIDOut;
+	output reg [(BT_WIDTH-1):0] ExternalBTOut_out,                                        //Output AER Packet
+	output reg [(NEURON_WIDTH-1):0] ExternalNIDOut_out,								
 
-	//Control Outputs 
-	wire InitializationComplete;
-	wire WChipEnable;
-	wire ThetaChipEnable;
-
+	//Control Outputs
+	output reg InitializationComplete_out,                                               //Cue for completion of warm-up and start Running
+	output reg WChipEnable_out,
+	output reg ThetaChipEnable_out,
+	
 	//Off-Chip RAM I/O
-	wire [(WRAM_ADDR_WIDTH-1):0] WRAMAddress;
-	wire [(WRAM_WORD_WIDTH-1):0] WeightData;
-	wire [(TRAM_ADDR_WIDTH-1):0] ThetaAddress;
-	wire [(TRAM_WORD_WIDTH-1):0] ThetaData;
+	output reg [(WRAM_ADDR_WIDTH-1):0] WRAMAddress_out,
+	input wire [(WRAM_WORD_WIDTH-1):0] WeightData,
+	output reg [(TRAM_ADDR_WIDTH-1):0] ThetaAddress_out,
+	input wire [(TRAM_WORD_WIDTH-1):0] ThetaData,
 
 	//On-Chip RAM I/O 
-	wire [(2**NEURON_WIDTH_PHYSICAL -1):0] SPNR_CE;
-	wire [(2**NEURON_WIDTH_PHYSICAL -1):0] SPNR_WE;
-	wire [(SPNR_ADDR_WIDTH)*(2**NEURON_WIDTH_PHYSICAL) - 1:0] SPNR_IA;
-	wire [(SPNR_WORD_WIDTH)*(2**NEURON_WIDTH_PHYSICAL) - 1:0] SPNR_ID;
-	wire [(SPNR_WORD_WIDTH)*(2**NEURON_WIDTH_PHYSICAL) - 1:0] SPNR_OD;
-
+	output reg [(2**NEURON_WIDTH_PHYSICAL -1):0] SPNR_CE_out,
+	output reg [(2**NEURON_WIDTH_PHYSICAL -1):0] SPNR_WE_out,
+	output reg [(SPNR_ADDR_WIDTH)*(2**NEURON_WIDTH_PHYSICAL) - 1:0] SPNR_IA_out,
+	output reg [(SPNR_WORD_WIDTH)*(2**NEURON_WIDTH_PHYSICAL) - 1:0] SPNR_ID_out,
 	
 	//Input FIFO
-	wire InputReset;
-	wire InputQueueEnable;
-	wire InputEnqueue;
-	wire InputDequeue;
-	wire [(BT_WIDTH-1):0] InFIFOBTIn;
-	wire [(NEURON_WIDTH-1):0] InFIFONIDIn;
+	output reg InputReset_out,
+	output reg InputQueueEnable_out,
+	output reg InputEnqueue_out,
+	output reg InputDequeue_out,
+	output reg [(BT_WIDTH-1):0] InFIFOBTIn_out,
+	output reg [(NEURON_WIDTH-1):0] InFIFONIDIn_out,
 
-	wire [(BT_WIDTH-1):0] InFIFOBTOut;
-	wire [(NEURON_WIDTH-1):0] InFIFONIDOut;
-	wire [(BT_WIDTH-1):0] InputBT_Head;
-	wire IsInputQueueEmpty;
-	wire IsInputQueueFull;
+	input wire [(BT_WIDTH-1):0] InFIFOBTOut,
+	input wire [(NEURON_WIDTH-1):0] InFIFONIDOut,
+	input wire [(BT_WIDTH-1):0] InputBT_Head,
+	input wire IsInputQueueEmpty,
+	input wire IsInputQueueFull,
 
 	//Aux FIFO
-	wire AuxReset;
-	wire AuxQueueEnable;
-	wire AuxEnqueue;
-	wire AuxDequeue;
-	wire [(BT_WIDTH-1):0] AuxFIFOBTIn;
-	wire [(NEURON_WIDTH-1):0] AuxFIFONIDIn;
+	output reg AuxReset_out,
+	output reg AuxQueueEnable_out,
+	output reg AuxEnqueue_out,
+	output reg AuxDequeue_out,
+	output reg [(BT_WIDTH-1):0] AuxFIFOBTIn_out,
+	output reg [(NEURON_WIDTH-1):0] AuxFIFONIDIn_out,
 
-	wire [(BT_WIDTH-1):0] AuxFIFOBTOut;
-	wire [(NEURON_WIDTH-1):0] AuxFIFONIDOut;
-	wire [(BT_WIDTH-1):0] AuxBT_Head;
-	wire IsAuxQueueEmpty;
-	wire IsAuxQueueFull;
+	input wire [(BT_WIDTH-1):0] AuxFIFOBTOut,
+	input wire [(NEURON_WIDTH-1):0] AuxFIFONIDOut,
+	input wire [(BT_WIDTH-1):0] AuxBT_Head,
+	input wire IsAuxQueueEmpty,
+	input wire IsAuxQueueFull,
 
 	//Out FIFO
-	wire OutReset;
-	wire OutQueueEnable;
-	wire OutEnqueue;
-	wire OutDequeue;
-	wire [(BT_WIDTH-1):0] OutFIFOBTIn;
-	wire [(NEURON_WIDTH-1):0] OutFIFONIDIn;
+	output reg OutReset_out,
+	output reg OutQueueEnable_out,
+	output reg OutEnqueue_out,
+	output reg OutDequeue_out,
+	output reg [(BT_WIDTH-1):0] OutFIFOBTIn_out,
+	output reg [(NEURON_WIDTH-1):0] OutFIFONIDIn_out,
 
-	wire [(BT_WIDTH-1):0] OutFIFOBTOut;
-	wire [(NEURON_WIDTH-1):0] OutFIFONIDOut;
-	wire [(BT_WIDTH-1):0] OutBT_Head;
-	wire IsOutQueueEmpty;
-	wire IsOutQueueFull;
+	input wire [(BT_WIDTH-1):0] OutFIFOBTOut,
+	input wire [(NEURON_WIDTH-1):0] OutFIFONIDOut,
+	input wire [(BT_WIDTH-1):0] OutBT_Head,
+	input wire IsOutQueueEmpty,
+	input wire IsOutQueueFull
+);								 
 
+	reg [(BT_WIDTH-1):0] ExternalBTOut;                                  
+	reg [(NEURON_WIDTH-1):0] ExternalNIDOut;								
+	reg InitializationComplete;
+	reg WChipEnable;
+	reg ThetaChipEnable;
+	reg [(WRAM_ADDR_WIDTH-1):0] WRAMAddress;
+	reg [(TRAM_ADDR_WIDTH-1):0] ThetaAddress;
+	reg [(2**NEURON_WIDTH_PHYSICAL -1):0] SPNR_CE;
+	reg [(2**NEURON_WIDTH_PHYSICAL -1):0] SPNR_WE;
+	reg [(SPNR_ADDR_WIDTH)*(2**NEURON_WIDTH_PHYSICAL) - 1:0] SPNR_IA;
+	reg [(SPNR_WORD_WIDTH)*(2**NEURON_WIDTH_PHYSICAL) - 1:0] SPNR_ID;
+	reg InputReset;
+	reg InputQueueEnable;
+	reg InputEnqueue;
+	reg InputDequeue;
+	reg [(BT_WIDTH-1):0] InFIFOBTIn;
+	reg [(NEURON_WIDTH-1):0] InFIFONIDIn;
+	reg AuxReset;
+	reg AuxQueueEnable;
+	reg AuxEnqueue;
+	reg AuxDequeue;
+	reg [(BT_WIDTH-1):0] AuxFIFOBTIn;
+	reg [(NEURON_WIDTH-1):0] AuxFIFONIDIn;
+	reg OutReset;
+	reg OutQueueEnable;
+	reg OutEnqueue;
+	reg OutDequeue;
+	reg [(BT_WIDTH-1):0] OutFIFOBTIn;
+	reg [(NEURON_WIDTH-1):0] OutFIFONIDIn;
 
+	always@(posedge Clock)
+	begin
+		ExternalBTOut_out <= ExternalBTOut;                            
+		ExternalNIDOut_out <= ExternalNIDOut;
+		InitializationComplete_out <= InitializationComplete;
+		WChipEnable_out <= WChipEnable;
+		ThetaChipEnable_out <= ThetaChipEnable;
+		WRAMAddress_out <= WRAMAddress;
+		ThetaAddress_out <= ThetaAddress;
+		SPNR_CE_out <= SPNR_CE;
+		SPNR_WE_out <= SPNR_WE;
+		SPNR_IA_out <= SPNR_IA;
+		SPNR_ID_out <= SPNR_ID;
+		InputReset_out <= InputReset;
+		InputQueueEnable_out <= InputQueueEnable;
+		InputEnqueue_out <= InputEnqueue;
+		InputDequeue_out <= InputDequeue;
+		InFIFOBTIn_out <= InFIFOBTIn;
+		InFIFONIDIn_out <= InFIFONIDIn;
+		AuxReset_out <= AuxReset;
+		AuxQueueEnable_out <= AuxQueueEnable;
+		AuxEnqueue_out <= AuxEnqueue;
+		AuxDequeue_out <= AuxDequeue;
+		AuxFIFOBTIn_out <= AuxFIFOBTIn;
+		AuxFIFONIDIn_out <= AuxFIFONIDIn;
+		OutReset_out <= OutReset;
+		OutQueueEnable_out <= OutQueueEnable;
+		OutEnqueue_out <= OutEnqueue;
+		OutDequeue_out <= OutDequeue;
+		OutFIFOBTIn_out <= OutFIFOBTIn;
+		OutFIFONIDIn_out <= OutFIFONIDIn;
+	end
+	
+
+	wire [(SPNR_WORD_WIDTH)*(2**NEURON_WIDTH_PHYSICAL) - 1:0] SPNR_OD;
 
 	//I/O Files
 	genvar phy;
@@ -223,17 +285,6 @@ module Top_syn_tb();
 		assign SPNR_OD[((phy+1)*SPNR_WORD_WIDTH)-1:SPNR_WORD_WIDTH*phy] = SPNROutputData[phy];
 	end
 
-
-
-
-
-	//State Monitor
-	localparam Monitor = 174;	//Change this
-	localparam MonitorIn = (Monitor+400);
-	localparam ExPhysical = Monitor%(2**NEURON_WIDTH_PHYSICAL);
-	localparam ExRow = Monitor>>(NEURON_WIDTH_PHYSICAL);
-	localparam InPhysical = MonitorIn%(2**NEURON_WIDTH_PHYSICAL);
-	localparam InRow = MonitorIn>>(NEURON_WIDTH_PHYSICAL);
 
 	
 	integer initStart, initEnd, BTStart, BTEnd, initCycles, BTCycles, numBT, AverageBTCycles;
@@ -366,49 +417,6 @@ module Top_syn_tb();
 
 	);
 
-	/***************************************************************
-		WEIGHT RAM 	
-	***************************************************************/
-	SinglePortOffChipRAM #(WRAM_WORD_WIDTH, WRAM_ADDR_WIDTH, WRAM_NUM_ROWS, WRAM_NUM_COLUMNS, WEIGHTFILE) WeightRAM
-	(
-		//Controls Signals
-		.Clock(Clock),	
-		.Reset(InternalRouteReset),
-		.ChipEnable(WChipEnable),
-		.WriteEnable(1'b0),
-
-		//Inputs from Router		
-		.InputData({WRAM_WORD_WIDTH{1'b0}}),
-		.InputAddress(WRAMAddress),
-
-		//Outputs to Router 
-		.OutputData(WeightData)
-
-	);
-
-	
-	
-	/***************************************************************
-		THETA RAM 	
-	***************************************************************/
-	
-	SinglePortOffChipRAM #(TRAM_WORD_WIDTH, TRAM_ADDR_WIDTH, TRAM_NUM_ROWS, TRAM_NUM_COLUMNS, THETAFILE) ThetaRAM
-	(
-		//Controls Signals
-		.Clock(Clock),	
-		.Reset(Reset),
-		.ChipEnable(ThetaChipEnable),			
-		.WriteEnable(1'b0),			
-
-		//Inputs from Router		
-		.InputData({TRAM_WORD_WIDTH{1'b0}}),		
-		.InputAddress(ThetaAddress),	
-
-		//Outputs to Router 
-		.OutputData(ThetaData)		
-
-	);
-
 
 	/***************************************************************
 		ON-CHIP RAMs	
@@ -429,94 +437,9 @@ module Top_syn_tb();
 
  					.OutputData(SPNROutputData[x])
 				);
-
 		end
 	endgenerate 
 
-	/***************************************************************
-			INPUT FIFO
-	***************************************************************/
-	InputFIFO #(BT_WIDTH, NEURON_WIDTH_LOGICAL, NEURON_WIDTH, FIFO_WIDTH) InFIFO
-	(
-		//Control Signals
-		.Clock(Clock),
-		.Reset(InputReset),
-		.QueueEnable(InputQueueEnable),
-		.Dequeue(InputDequeue),
-		.Enqueue(InputEnqueue),
-
-		//ExternalInputs
-		.BTIn(InFIFOBTIn),	
-		.NIDIn(InFIFONIDIn),
-		
-		//To Router via IRIS Selector
-		.BTOut(InFIFOBTOut),
-		.NIDOut(InFIFONIDOut),
-
-		//Control Outputs
-		.BT_Head(InputBT_Head),
-		.IsQueueEmpty(IsInputQueueEmpty),
-		.IsQueueFull(IsInputQueueFull)
-
-	);
-
-	/***************************************************************
-			AUXILIARY FIFO
-	***************************************************************/
-	InputFIFO #(BT_WIDTH, NEURON_WIDTH_LOGICAL, NEURON_WIDTH, FIFO_WIDTH) AuxFIFO
-	(
-		//Control Signals
-		.Clock(Clock),
-		.Reset(AuxReset),
-		.QueueEnable(AuxQueueEnable),
-		.Dequeue(AuxDequeue),
-
-		//From Internal Router
-		.Enqueue(AuxEnqueue),
-
-		//Internal ROUTER iNPUTS
-		.BTIn(AuxFIFOBTIn),	
-		.NIDIn(AuxFIFONIDIn),
-
-		//To Router via IRIS Selector
-		.BTOut(AuxFIFOBTOut),
-		.NIDOut(AuxFIFONIDOut),
-
-		//Control Inputs
-		.BT_Head(AuxBT_Head),
-		.IsQueueEmpty(IsAuxQueueEmpty),
-		.IsQueueFull(IsAuxQueueFull)
-
-	);
-
-	/***************************************************************
-			OUTPUT FIFO
-	***************************************************************/
-	InputFIFO #(BT_WIDTH, NEURON_WIDTH_LOGICAL, NEURON_WIDTH, FIFO_WIDTH) OutFIFO
-	(
-		//Control Signals
-		.Clock(Clock),
-		.Reset(OutReset),
-		.QueueEnable(OutQueueEnable),
-		.Dequeue(OutDequeue),
-
-		//From Internal Router
-		.Enqueue(OutEnqueue),
-
-		//Internal ROUTER Inputs
-		.BTIn(OutFIFOBTIn),	
-		.NIDIn(OutFIFONIDIn),
-
-		//To External 
-		.BTOut(OutFIFOBTOut),
-		.NIDOut(OutFIFONIDOut),
-
-		//Control Inputs
-		.BT_Head(OutBT_Head),
-		.IsQueueEmpty(IsOutQueueEmpty),
-		.IsQueueFull(IsOutQueueFull)
-
-	);
 
 
 
