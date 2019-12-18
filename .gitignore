@@ -5,7 +5,9 @@ fv
 
 gscl45nm.*
 
-cynapse
+cynapse_tb
+cynapse_neuron_tb
 a.out
 binaries/
 OneExampleTestDump*
+ConductanceLIFNeuronUnit_tb_out.csv
