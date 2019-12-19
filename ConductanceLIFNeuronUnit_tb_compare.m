@@ -20,50 +20,59 @@ opt_Spikes = data_opt(:,7);
 %% Plotting %%
 numPlots = 7;
 plotNum = 1;
-figure(1,"position",get(0,"screensize"));
+fig = figure("position",get(0,"screensize"));
 
-subplot(numPlots,1,plotNum++);
+subplot(numPlots,1,plotNum);
+plotNum=plotNum+1;
 hold on;
 plot(bline_ExWeightSum);
 plot(opt_ExWeightSum);
 title("Input excitatory weight sum (input spikes)");
 legend('Baseline','Optimized');
 
-subplot(numPlots,1,plotNum++);
+subplot(numPlots,1,plotNum);
+plotNum=plotNum+1;
 hold on;
 plot(bline_gex);
 plot(opt_gex);
 title("Gex (excitatory leak current)");
 
-subplot(numPlots,1,plotNum++);
+subplot(numPlots,1,plotNum);
+plotNum=plotNum+1;
 hold on;
 plot(bline_InWeightSum);
 plot(opt_InWeightSum);
 title("Input inhibitory weight sum (input spikes)");
 
-subplot(numPlots,1,plotNum++);
+subplot(numPlots,1,plotNum);
+plotNum=plotNum+1;
 hold on;
 plot(bline_gin);
 plot(opt_gin);
 title("Gin (inhibitory leak current)");
 
-subplot(numPlots,1,plotNum++);
+subplot(numPlots,1,plotNum);
+plotNum=plotNum+1;
 hold on;
 plot(bline_Vmem);
 plot(opt_Vmem);
 title("Vmem (membrane potential)");
 
-subplot(numPlots,1,plotNum++);
+subplot(numPlots,1,plotNum);
+plotNum=plotNum+1;
 hold on;
 plot(bline_RefVal);
 plot(opt_RefVal);
 title("Tref (time left in refactory period)");
 
-subplot(numPlots,1,plotNum++);
+subplot(numPlots,1,plotNum);
+plotNum=plotNum+1;
 hold on;
 plot(bline_Spikes);
 plot(opt_Spikes)
 title("Output spikes");
+
+saveas(fig, "ConductanceLIFNeuronUnit_tb_compare.png", "png");
 
 %% Analysis %%
 fprintf("\nRMS Errors:\n");
