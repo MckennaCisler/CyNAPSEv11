@@ -1,112 +1,195 @@
+close all;
+
 data_bline = csvread("ConductanceLIFNeuronUnit_tb_out_baseline.csv");
 data_opt = csvread("ConductanceLIFNeuronUnit_tb_out_opt.csv");
+results_file = fopen('ConductanceLIFNeuronUnit_tb_compare_out.txt','w');
 
-bline_ExWeightSum = data_bline(:,1);
-bline_InWeightSum = data_bline(:,2);
-bline_Vmem = data_bline(:,3);
-bline_gex = data_bline(:,4);
-bline_gin = data_bline(:,5);
-bline_RefVal = data_bline(:,6);
-bline_Spikes = data_bline(:,7);
+[
+    bline_inputSet, ...
+    bline_ExWeightSum, ...
+    bline_InWeightSum, ...
+    bline_Vmem, ...
+    bline_gex, ...
+    bline_gin, ...
+    bline_RefVal, ...
+    bline_Spikes, ...
+] = extract_fields(data_bline);
 
-opt_ExWeightSum = data_opt(:,1);
-opt_InWeightSum = data_opt(:,2);
-opt_Vmem = data_opt(:,3);
-opt_gex = data_opt(:,4);
-opt_gin = data_opt(:,5);
-opt_RefVal = data_opt(:,6);
-opt_Spikes = data_opt(:,7);
-
-%% Plotting %%
-numPlots = 7;
-plotNum = 1;
-fig = figure("position",get(0,"screensize"));
-
-subplot(numPlots,1,plotNum);
-plotNum=plotNum+1;
-hold on;
-plot(bline_ExWeightSum);
-plot(opt_ExWeightSum);
-title("Input excitatory weight sum (input spikes)");
-legend('Baseline','Optimized');
-
-subplot(numPlots,1,plotNum);
-plotNum=plotNum+1;
-hold on;
-plot(bline_gex);
-plot(opt_gex);
-title("Gex (excitatory leak current)");
-
-subplot(numPlots,1,plotNum);
-plotNum=plotNum+1;
-hold on;
-plot(bline_InWeightSum);
-plot(opt_InWeightSum);
-title("Input inhibitory weight sum (input spikes)");
-
-subplot(numPlots,1,plotNum);
-plotNum=plotNum+1;
-hold on;
-plot(bline_gin);
-plot(opt_gin);
-title("Gin (inhibitory leak current)");
-
-subplot(numPlots,1,plotNum);
-plotNum=plotNum+1;
-hold on;
-plot(bline_Vmem);
-plot(opt_Vmem);
-title("Vmem (membrane potential)");
-
-subplot(numPlots,1,plotNum);
-plotNum=plotNum+1;
-hold on;
-plot(bline_RefVal);
-plot(opt_RefVal);
-title("Tref (time left in refactory period)");
-
-subplot(numPlots,1,plotNum);
-plotNum=plotNum+1;
-hold on;
-plot(bline_Spikes);
-plot(opt_Spikes)
-title("Output spikes");
-
-saveas(fig, "ConductanceLIFNeuronUnit_tb_compare.png", "png");
+[
+    opt_inputSet, ...
+    opt_ExWeightSum, ...
+    opt_InWeightSum, ...
+    opt_Vmem, ...
+    opt_gex, ...
+    opt_gin, ...
+    opt_RefVal, ...
+    opt_Spikes, ...
+] = extract_fields(data_opt);
 
 %% Analysis %%
-fprintf("\nRMS Errors:\n");
-Vmem_rms_error = sqrt(mean((bline_Vmem-opt_Vmem).^2))
-gex_rms_error = sqrt(mean((bline_gex-opt_gex).^2))
-gin_rms_error = sqrt(mean((bline_gin-opt_gin).^2))
-RefVal_rms_error = sqrt(mean((bline_RefVal-opt_RefVal).^2))
+plot_results("ConductanceLIFNeuronUnit_tb_compare.png", data_bline, data_opt);
 
-fprintf("\nAverage Relative Errors:\n");
-Vmem_rel_error = mean(bline_Vmem-opt_Vmem)
-gex_rel_error = mean(bline_gex-opt_gex)
-gin_rel_error = mean(bline_gin-opt_gin)
-RefVal_rel_error = mean(bline_RefVal-opt_RefVal)
+assert(all(unique(bline_inputSet) == unique(opt_inputSet)));
 
-fprintf("\nNormalized Average Relative Errors:\n");
-Vmem_rel_error = mean((bline_Vmem-opt_Vmem)./bline_Vmem)
-gex_rel_error = mean((bline_gex-opt_gex)./bline_gex)
-gin_rel_error = mean((bline_gin-opt_gin)./bline_gin)
-RefVal_rel_error = mean((bline_RefVal-opt_RefVal)./bline_RefVal)
+for set = unique(bline_inputSet)'
+    indicies = data_bline(:,1) == set;
+    report_results(results_file, data_bline(indicies,:), data_opt(indicies,:));
+end
+report_results(results_file, data_bline, data_opt);
 
-fprintf("\nAverage Absolute Errors:\n");
-Vmem_abs_error = mean(abs(bline_Vmem-opt_Vmem))
-gex_abs_error = mean(abs(bline_gex-opt_gex))
-gin_abs_error = mean(abs(bline_gin-opt_gin))
-RefVal_abs_error = mean(abs(bline_RefVal-opt_RefVal))
+%% Helpers %%
+function [inputSet, ExWeightSum, InWeightSum, Vmem, gex, gin, RefVal, Spikes] = extract_fields(data)
+    inputSet = data(:,1);
+    ExWeightSum = data(:,2);
+    InWeightSum = data(:,3);
+    Vmem = data(:,4);
+    gex = data(:,5);
+    gin = data(:,6);
+    RefVal = data(:,7);
+    Spikes = data(:,8);
+end
 
-fprintf("\nNormalized Average Absolute Errors:\n");
-Vmem_abs_error_norm = mean(abs((bline_Vmem-opt_Vmem)./bline_Vmem))
-gex_abs_error_norm = mean(abs((bline_gex-opt_gex)./bline_gex))
-gin_abs_error_norm = mean(abs((bline_gin-opt_gin)./bline_gin))
-RefVal_abs_error_norm = mean(abs((bline_RefVal-opt_RefVal)./bline_RefVal))
+function plot_results(outfile, data_bline, data_opt)
+    [
+        bline_inputSet, ...
+        bline_ExWeightSum, ...
+        bline_InWeightSum, ...
+        bline_Vmem, ...
+        bline_gex, ...
+        bline_gin, ...
+        bline_RefVal, ...
+        bline_Spikes, ...
+    ] = extract_fields(data_bline);
 
-fprintf("\nSpike Output Errors:\n");
-Spikes_hamming_dist = sum(abs(bline_Spikes-opt_Spikes)) % abs diff equivalent to hamming dist
-Spikes_hamming_dist_norm = Spikes_hamming_dist/length(bline_Spikes)
+    [
+        opt_inputSet, ...
+        opt_ExWeightSum, ...
+        opt_InWeightSum, ...
+        opt_Vmem, ...
+        opt_gex, ...
+        opt_gin, ...
+        opt_RefVal, ...
+        opt_Spikes, ...
+    ] = extract_fields(data_opt);
 
-pause;
+    numPlots = 7;
+    plotNum = 1;
+    fig = figure;
+    %fig = figure("position",get(0,"screensize"));
+
+    subplot(numPlots,1,plotNum);
+    plotNum=plotNum+1;
+    hold on;
+    plot(bline_ExWeightSum);
+    plot(opt_ExWeightSum);
+    title("Input excitatory weight sum (input spikes)");
+    legend('Baseline','Optimized');
+
+    subplot(numPlots,1,plotNum);
+    plotNum=plotNum+1;
+    hold on;
+    plot(bline_gex);
+    plot(opt_gex);
+    title("Gex (excitatory leak current)");
+
+    subplot(numPlots,1,plotNum);
+    plotNum=plotNum+1;
+    hold on;
+    plot(bline_InWeightSum);
+    plot(opt_InWeightSum);
+    title("Input inhibitory weight sum (input spikes)");
+
+    subplot(numPlots,1,plotNum);
+    plotNum=plotNum+1;
+    hold on;
+    plot(bline_gin);
+    plot(opt_gin);
+    title("Gin (inhibitory leak current)");
+
+    subplot(numPlots,1,plotNum);
+    plotNum=plotNum+1;
+    hold on;
+    plot(bline_Vmem);
+    plot(opt_Vmem);
+    title("Vmem (membrane potential)");
+
+    subplot(numPlots,1,plotNum);
+    plotNum=plotNum+1;
+    hold on;
+    plot(bline_RefVal);
+    plot(opt_RefVal);
+    title("Tref (time left in refactory period)");
+
+    subplot(numPlots,1,plotNum);
+    plotNum=plotNum+1;
+    hold on;
+    plot(bline_Spikes);
+    plot(opt_Spikes)
+    title("Output spikes");
+
+    saveas(fig, outfile, "png");
+end
+
+function report_results(res_f, data_bline, data_opt)
+   [
+        bline_inputSet, ...
+        bline_ExWeightSum, ...
+        bline_InWeightSum, ...
+        bline_Vmem, ...
+        bline_gex, ...
+        bline_gin, ...
+        bline_RefVal, ...
+        bline_Spikes, ...
+    ] = extract_fields(data_bline);
+
+    [
+        opt_inputSet, ...
+        opt_ExWeightSum, ...
+        opt_InWeightSum, ...
+        opt_Vmem, ...
+        opt_gex, ...
+        opt_gin, ...
+        opt_RefVal, ...
+        opt_Spikes, ...
+    ] = extract_fields(data_opt);
+    
+    fprintf(res_f,"\n\n=========== Results for input set(s):  ===========\n");
+    fprintf(res_f,"%d\n", unique(bline_inputSet));
+    assert(all(unique(bline_inputSet) == unique(opt_inputSet)));
+
+    fprintf(res_f,"\n===== RMS Errors =====\n");
+    fprintf(res_f,"Vmem: %d\n", sqrt(mean((bline_Vmem-opt_Vmem).^2)));
+    fprintf(res_f,"gex: %d\n", sqrt(mean((bline_gex-opt_gex).^2)));
+    fprintf(res_f,"gin: %d\n", sqrt(mean((bline_gin-opt_gin).^2)));
+    fprintf(res_f,"RefVal: %d\n", sqrt(mean((bline_RefVal-opt_RefVal).^2)));
+
+    fprintf(res_f,"\n===== Average Relative Errors =====\n");
+    fprintf(res_f,"Vmem: %d\n", mean(bline_Vmem-opt_Vmem));
+    fprintf(res_f,"gex: %d\n", mean(bline_gex-opt_gex));
+    fprintf(res_f,"gin: %d\n", mean(bline_gin-opt_gin));
+    fprintf(res_f,"RefVal: %d\n", mean(bline_RefVal-opt_RefVal));
+
+    fprintf(res_f,"\n===== Normalized Average Relative Errors =====\n");
+    fprintf(res_f,"Vmem: %d\n", mean((bline_Vmem-opt_Vmem)./bline_Vmem));
+    fprintf(res_f,"gex: %d\n", mean((bline_gex-opt_gex)./bline_gex));
+    fprintf(res_f,"gin: %d\n", mean((bline_gin-opt_gin)./bline_gin));
+    fprintf(res_f,"RefVal: %d\n", mean((bline_RefVal-opt_RefVal)./bline_RefVal));
+
+    fprintf(res_f,"\n===== Average Absolute Errors =====\n");
+    fprintf(res_f,"Vmem: %d\n", mean(abs(bline_Vmem-opt_Vmem)));
+    fprintf(res_f,"gex: %d\n", mean(abs(bline_gex-opt_gex)));
+    fprintf(res_f,"gin: %d\n", mean(abs(bline_gin-opt_gin)));
+    fprintf(res_f,"RefVal: %d\n", mean(abs(bline_RefVal-opt_RefVal)));
+
+    fprintf(res_f,"\n===== Normalized Average Absolute Errors =====\n");
+    fprintf(res_f,"Vmem: %d\n", mean(abs((bline_Vmem-opt_Vmem)./bline_Vmem)));
+    fprintf(res_f,"gex: %d\n", mean(abs((bline_gex-opt_gex)./bline_gex)));
+    fprintf(res_f,"gin: %d\n", mean(abs((bline_gin-opt_gin)./bline_gin)));
+    fprintf(res_f,"RefVal: %d\n", mean(abs((bline_RefVal-opt_RefVal)./bline_RefVal)));
+
+    fprintf(res_f,"\n===== Spike Output Errors =====\n");
+    % abs diff equivalent to hamming dist
+    Spikes_hamming_dist = sum(abs(bline_Spikes-opt_Spikes));
+    fprintf(res_f,"Hamming distance: %d\n", Spikes_hamming_dist); 
+    fprintf(res_f,"Hamming distance (normalized): %d\n", Spikes_hamming_dist/length(bline_Spikes));
+end
