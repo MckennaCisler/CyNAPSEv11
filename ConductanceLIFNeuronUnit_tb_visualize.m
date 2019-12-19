@@ -1,35 +1,43 @@
 data = csvread("ConductanceLIFNeuronUnit_tb_out.csv");
 
 ExWeightSum = data(:,1);
-Vmem = data(:,2);
-gex = data(:,3);
-gin = data(:,4);
-RefVal = data(:,5);
-Spikes = data(:,6);
+InWeightSum = data(:,2);
+Vmem = data(:,3);
+gex = data(:,4);
+gin = data(:,5);
+RefVal = data(:,6);
+Spikes = data(:,7);
 
-numPlots = 5;
-
+numPlots = 7;
+plotNum = 1;
 figure(1,"position",get(0,"screensize"));
 hold on;
 
-subplot(numPlots,1,1);
+subplot(numPlots,1,plotNum++);
 plot(ExWeightSum);
-title("input weight sum (input spikes)");
+title("input excitatory weight sum (input spikes)");
 
-subplot(numPlots,1,2);
+subplot(numPlots,1,plotNum++);
 plot(gex);
-%plot(gin);
-title("gex/gin (leak current)");
+title("gex (leak current)");
 
-subplot(numPlots,1,3);
+subplot(numPlots,1,plotNum++);
+plot(InWeightSum);
+title("input inhibitory weight sum (input spikes)");
+
+subplot(numPlots,1,plotNum++);
+plot(gin);
+title("gin (leak current)");
+
+subplot(numPlots,1,plotNum++);
 plot(Vmem);
 title("Vmem (membrane potential)");
 
-subplot(numPlots,1,4);
+subplot(numPlots,1,plotNum++);
 plot(RefVal);
 title("Tref (time left in refactory period)");
 
-subplot(numPlots,1,5);
+subplot(numPlots,1,plotNum++);
 plot(Spikes)
 title("Output spikes");
 

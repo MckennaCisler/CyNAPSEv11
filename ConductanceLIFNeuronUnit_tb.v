@@ -12,8 +12,9 @@
 `timescale 1ns/1ns
 module ConductanceLIFNeuronUnit_tb();
 
-    localparam WTSUM_FILE = "test_data/CLIFN_tb_wtSums_cont.csv";
+    localparam WTSUM_FILE = "test_data/CLIFN_tb_wtSums_periodic_alternating.csv";
     localparam OUTFILE = "ConductanceLIFNeuronUnit_tb_out.csv";
+    reg NeuronType = 0; // 0 = excitatory, 1 = inhibitory
 
     //Global Timer resolution and limits
 	localparam DELTAT_WIDTH = 4;				//Resolution upto 0.1 ms can be supported 
@@ -65,8 +66,8 @@ module ConductanceLIFNeuronUnit_tb();
 	reg signed [(DATA_WIDTH-1):0] gin_Initial_IN = {64'd0};
 
     // Neuron status variables; normally stored in NeuronRAMs
-    reg  CurrentNtype = 0; // Excitatory
-    reg  signed [(DATA_WIDTH-1):0] Threshold = {-32'd52,32'd0}; // Threshold_EX
+    reg  signed [(DATA_WIDTH-1):0] Threshold;
+    initial Threshold = (NeuronType == 0) ? Threshold_EX : Threshold_IN;
     // Output registers for Physical Neurons  
     reg  signed [(DATA_WIDTH-1):0] Vmem;
     reg  signed [(DATA_WIDTH-1):0] gex;
@@ -100,7 +101,7 @@ module ConductanceLIFNeuronUnit_tb();
         .UpdateEnable(UpdateEnable),
         .Initialize(Initialize),
 
-        .NeuronType(CurrentNtype),
+        .NeuronType(NeuronType),
 
         .RestVoltage_EX(RestVoltage_EX), 	
         .Taumembrane_EX(Taumembrane_EX), 	
@@ -150,9 +151,9 @@ module ConductanceLIFNeuronUnit_tb();
         Reset = 0;
         UpdateEnable = 0;
 
-        Vmem = Vmem_Initial_EX;
-        gex = gex_Initial_EX;
-        gin = gin_Initial_EX;
+        Vmem = (NeuronType == 0) ? Vmem_Initial_EX : Vmem_Initial_IN;
+        gex = (NeuronType == 0) ? gex_Initial_EX : gex_Initial_IN;
+        gin = (NeuronType == 0) ? gin_Initial_EX : gin_Initial_IN;
         RefVal = 0;
         ExWeightSum = 0; 
         InWeightSum = 0;
@@ -168,8 +169,8 @@ module ConductanceLIFNeuronUnit_tb();
 
     // Simulation routine
     initial begin
-        $display("using input weight sum pattern file %s", WTSUM_FILE);
-        $display("Outputting simulation data to %s", OUTFILE);
+        $display("Reading input weight sum pattern from %s", WTSUM_FILE);
+        $display("Writing simulation data to %s", OUTFILE);
 
         Reset = 1;
         UpdateEnable = 0;
@@ -179,12 +180,11 @@ module ConductanceLIFNeuronUnit_tb();
         UpdateEnable = 1;
 
         while (!$feof(wtSumFile)) begin
-            scanWtSum = $fscanf(wtSumFile, "%d\n", ExWeightSum);
-            // $display("ExWeightSum: %d", ExWeightSum);
+            scanWtSum = $fscanf(wtSumFile, "%d,%d\n", ExWeightSum, InWeightSum);
 
             // one clock cycle to latch internally, one to latch in the testbench
             #20;
-            $fwrite(outFile, "%d,%d,%d,%d,%d,%d\n", ExWeightSum, Vmem, gex, gin, RefVal, SpikeBuffer);
+            $fwrite(outFile, "%d,%d,%d,%d,%d,%d,%d\n", ExWeightSum, InWeightSum, Vmem, gex, gin, RefVal, SpikeBuffer);
         end
 
         $fclose(wtSumFile);
