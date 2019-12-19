@@ -1,8 +1,8 @@
 close all;
 
-data_bline = csvread("ConductanceLIFNeuronUnit_tb_out_baseline.csv");
-data_opt = csvread("ConductanceLIFNeuronUnit_tb_out_opt.csv");
-results_file = fopen('ConductanceLIFNeuronUnit_tb_compare_out.txt','w');
+data_bline = csvread("CLIFNU_tb_out_baseline.csv");
+data_opt = csvread("CLIFNU_tb_out_opt.csv");
+results_file = fopen('CLIFNU_tb_compare_out.txt','w');
 
 [
     bline_inputSet, ...
@@ -27,7 +27,7 @@ results_file = fopen('ConductanceLIFNeuronUnit_tb_compare_out.txt','w');
 ] = extract_fields(data_opt);
 
 %% Analysis %%
-plot_results("ConductanceLIFNeuronUnit_tb_compare.png", data_bline, data_opt);
+plot_results("CLIFNU_tb_compare.png", data_bline, data_opt);
 
 assert(all(unique(bline_inputSet) == unique(opt_inputSet)));
 

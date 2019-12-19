@@ -12,8 +12,8 @@
 `timescale 1ns/1ns
 module ConductanceLIFNeuronUnit_tb();
 
-    localparam WTSUM_FILE = "test_data/CLIFN_tb_wtSums.csv";
-    localparam OUTFILE = "ConductanceLIFNeuronUnit_tb_out.csv";
+    localparam WTSUM_FILE = "test_data/CLIFNU_tb_wtSums.csv";
+    localparam OUTFILE = "CLIFNU_tb_out.csv";
     reg NeuronType = 0; // 0 = excitatory, 1 = inhibitory
 
     //Global Timer resolution and limits

@@ -11,15 +11,15 @@ OPT_FILES_DIV="ConductanceLIFNeuronUnit_tb.v ConductanceLIFNeuronUnit.v GexLeakU
 OPT_FILES=$OPT_FILES_DIV
 
 # constants; need to correspond with scripts
-WTSUM_FILE="test_data\/CLIFN_tb_wtSums.csv"
-TB_OUTFILE="ConductanceLIFNeuronUnit_tb_out.csv"
-TB_OUTFILE_BASELINE="ConductanceLIFNeuronUnit_tb_out_baseline.csv"
-TB_OUTFILE_OPT="ConductanceLIFNeuronUnit_tb_out_opt.csv"
-COMPARE_SCRIPT_FIG="ConductanceLIFNeuronUnit_tb_compare.png"
+WTSUM_FILE="test_data\/CLIFNU_tb_wtSums.csv"
+TB_OUTFILE="CLIFNU_tb_out.csv"
+TB_OUTFILE_BASELINE="CLIFNU_tb_out_baseline.csv"
+TB_OUTFILE_OPT="CLIFNU_tb_out_opt.csv"
+COMPARE_SCRIPT_FIG="CLIFNU_tb_compare.png"
 
 # modify this file to change what the generated input sequences look like
 cd test_data/
-./generate_CLIFN_tb_wtSums.py
+./generate_CLIFNU_tb_wtSums.py
 cd ..
 
 sed "s/localparam WTSUM_FILE = \".*\"/localparam WTSUM_FILE = \"$WTSUM_FILE\"/" ConductanceLIFNeuronUnit_tb.v -i
@@ -35,7 +35,7 @@ mv $TB_OUTFILE $TB_OUTFILE_OPT
 
 # if [ $MATLAB == "1" ]
 # then
-#     matlab -nodesktop -nodisplay -nosplash -r "run('$(pwd)/ConductanceLIFNeuronUnit_tb_compare.m')"
+#     matlab -nodesktop -nodisplay -nosplash -r "run('$(pwd)/CLIFNU_tb_compare.m')"
 # else
-#     octave ConductanceLIFNeuronUnit_tb_compare.m
+#     octave CLIFNU_tb_compare.m
 # fi

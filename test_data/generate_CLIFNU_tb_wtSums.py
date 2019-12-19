@@ -18,7 +18,7 @@ def periodic_simul():
             rows.append((ex_wt_sum, in_wt_sum))
         else:
             rows.append((0, 0))
-    write_rows("CLIFN_tb_wtSums_periodic_simul.csv", rows)
+    return rows
 
 def periodic_alternating():
     ex_wt_sum = 100000000000
@@ -32,7 +32,7 @@ def periodic_alternating():
             rows.append((0, in_wt_sum))
         else:
             rows.append((0, 0))
-    write_rows("CLIFN_tb_wtSums_periodic_alternating.csv", rows)
+    return rows
 
 def random_both():
     ex_max_val = 100000000000
@@ -41,8 +41,17 @@ def random_both():
     rows = []
     for i in range(1000):
         rows.append((random.randint(0,ex_max_val), random.randint(0,in_max_val)))
-    write_rows("CLIFN_tb_wtSums_random_both.csv", rows)
+    return rows
 
-periodic_simul()
-periodic_alternating()
-random_both()
+sets = [
+    periodic_simul(),
+    periodic_alternating(),
+    random_both()
+]
+
+all_rows = []
+for set_num in range(len(sets)):
+    for row in sets[set_num]:
+        all_rows.append((set_num,) + row)
+
+write_rows("CLIFNU_tb_wtSums.csv", all_rows)
