@@ -60,8 +60,10 @@ module VmemLeakUnit
 	assign V2 = V1*DeltaT_Extended;
 	//assign V3 = Dividend/Taumem_Extended;
 	// Take the reciprocal of Taumem, and then multiply
-	fixed_point_recip recip(.a(Taumem), .q(Taumem_Recip));
-	DRUMk_n_m_s #(.k(8), .n(DATA_WIDTH+DATA_WIDTH_FRAC), .m(DATA_WIDTH)) div (.a(Dividend), .b(Taumem_Recip), .r(V3));
+	//fixed_point_recip recip(.a(Taumem), .q(Taumem_Recip));
+	//DRUMk_n_m_s #(.k(8), .n(DATA_WIDTH+DATA_WIDTH_FRAC), .m(DATA_WIDTH)) div (.a(Dividend), .b(Taumem_Recip), .r(V3));
+
+	approx_divider #(.dvnd(64), .dvsr(32)) div (.dividend(MultResult), .divisor(Taumem), .quotient(Quotient));
 	
 	assign VmemOut = Vmem + Quotient; 
 

@@ -55,8 +55,10 @@ module GinLeakUnit
 	assign V2 = V1*DeltaT_Extended;
 	//assign V3 = Dividend/Taugin_Extended;
 	// Take the reciprocal of Taugin, and then multiply
-	fixed_point_recip recip(.a(Taugin), .q(Taugin_Recip));
-	DRUMk_n_m_s #(.k(8), .n(DATA_WIDTH+DATA_WIDTH_FRAC), .m(DATA_WIDTH)) div (.a(Dividend), .b(Taugin_Recip), .r(V3));
+	//fixed_point_recip recip(.a(Taugin), .q(Taugin_Recip));
+	//DRUMk_n_m_s #(.k(8), .n(DATA_WIDTH+DATA_WIDTH_FRAC), .m(DATA_WIDTH)) div (.a(Dividend), .b(Taugin_Recip), .r(V3));
+
+	approx_divider #(.dvnd(64), .dvsr(32)) div (.dividend(MultResult), .divisor(Taugin), .quotient(Quotient));
 	
 	assign ginOut = gin + Quotient; 
 

@@ -55,8 +55,10 @@ module GexLeakUnit
 	assign V2 = V1*DeltaT_Extended;
 	//assign V3 = Dividend/Taugin_Extended;
 	// Take the reciprocal of Taugin, and then multiply
-	fixed_point_recip recip(.a(Taugex), .q(Taugex_Recip));
-	DRUMk_n_m_s #(.k(8), .n(DATA_WIDTH+DATA_WIDTH_FRAC), .m(DATA_WIDTH)) div (.a(Dividend), .b(Taugex_Recip), .r(V3));
+	//fixed_point_recip recip(.a(Taugex), .q(Taugex_Recip));
+	//DRUMk_n_m_s #(.k(8), .n(DATA_WIDTH+DATA_WIDTH_FRAC), .m(DATA_WIDTH)) div (.a(Dividend), .b(Taugex_Recip), .r(V3));
+
+	approx_divider #(.dvnd(64), .dvsr(32)) div (.dividend(MultResult), .divisor(Taugex), .quotient(Quotient));
 	
 	assign gexOut = gex + Quotient;
 

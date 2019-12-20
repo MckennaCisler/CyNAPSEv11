@@ -62,11 +62,15 @@ module EPSCUnit
 	
 	//assign V3 = Dividend/Taumem_Extended;
 	// Take the reciprocal of Taumem
-	fixed_point_recip recip(.a(Taumem), .q(Taumem_Recip));
-	DRUMk_n_m_s #(.k(8), .n(DATA_WIDTH+DATA_WIDTH_FRAC), .m(DATA_WIDTH)) div (.a(Dividend), .b(Taumem_Recip), .r(V3));
+	//fixed_point_recip recip(.a(Taumem), .q(Taumem_Recip));
+	//DRUMk_n_m_s #(.k(8), .n(DATA_WIDTH+DATA_WIDTH_FRAC), .m(DATA_WIDTH)) div (.a(Dividend), .b(Taumem_Recip), .r(V3));
 	
+	approx_divider #(.dvnd(64), .dvsr(32)) div (.dividend(Mult1Result), .divisor(Taumem), .quotient(Quotient));
+
 	//assign V4 = Quotient*gex;
 	DRUMk_n_m_s #(.k(8), .n(DATA_WIDTH), .m(DATA_WIDTH)) mult (.a(Quotient), .b(gex), .r(V4));
+
+	
 	assign EPSCOut = Mult2Result;
 
 
