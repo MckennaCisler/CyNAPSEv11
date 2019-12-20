@@ -12,6 +12,7 @@
 `timescale 1ns/1ns
 module ConductanceLIFNeuronUnit_tb();
 
+    // see below for formats
     localparam WTSUM_FILE = "test_data/CLIFNU_tb_wtSums.csv";
     localparam OUTFILE = "CLIFNU_tb_out.csv";
     reg NeuronType = 0; // 0 = excitatory, 1 = inhibitory
@@ -37,21 +38,21 @@ module ConductanceLIFNeuronUnit_tb();
 
     //Neuron-specific characteristics	
 	reg signed [(INTEGER_WIDTH-1):0] RestVoltage_EX = {-32'd65}; 	
-	reg signed [(INTEGER_WIDTH-1):0] Taumembrane_EX = {32'd100}; 	
+	reg signed [(INTEGER_WIDTH-1):0] Taumembrane_EX = {32'd100}; // will be overridden 	
 	reg signed [(INTEGER_WIDTH-1):0] ExReversal_EX = {32'd0};	
 	reg signed [(INTEGER_WIDTH-1):0] InReversal_EX = {-32'd100}; 	
-	reg signed [(INTEGER_WIDTH-1):0] TauExCon_EX = {32'd1};	
-	reg signed [(INTEGER_WIDTH-1):0] TauInCon_EX = {32'd2};	
+	reg signed [(INTEGER_WIDTH-1):0] TauExCon_EX = {32'd1};	// will be overridden
+	reg signed [(INTEGER_WIDTH-1):0] TauInCon_EX = {32'd2};	// will be overridden
 	reg signed [(TREF_WIDTH-1):0] Refractory_EX = {5'd5};		
 	reg signed [(INTEGER_WIDTH-1):0] ResetVoltage_EX = {-32'd65};	
 	reg signed [(DATA_WIDTH-1):0] Threshold_EX = {-32'd52,32'd0};
 
 	reg signed [(INTEGER_WIDTH-1):0] RestVoltage_IN = {-32'd60}; 	
-	reg signed [(INTEGER_WIDTH-1):0] Taumembrane_IN = {32'd10}; 	
+	reg signed [(INTEGER_WIDTH-1):0] Taumembrane_IN = {32'd10}; // will be overridden	
 	reg signed [(INTEGER_WIDTH-1):0] ExReversal_IN = {32'd0};	
 	reg signed [(INTEGER_WIDTH-1):0] InReversal_IN = {-32'd85}; 	
-	reg signed [(INTEGER_WIDTH-1):0] TauExCon_IN = {32'd1};	
-	reg signed [(INTEGER_WIDTH-1):0] TauInCon_IN = {32'd2};	
+	reg signed [(INTEGER_WIDTH-1):0] TauExCon_IN = {32'd1};	// will be overridden
+	reg signed [(INTEGER_WIDTH-1):0] TauInCon_IN = {32'd2};	// will be overridden
 	reg signed [(TREF_WIDTH-1):0] Refractory_IN = {5'd2};		
 	reg signed [(INTEGER_WIDTH-1):0] ResetVoltage_IN = {-32'd45};	
 	reg signed [(DATA_WIDTH-1):0] Threshold_IN = {-32'd40, 32'd0};
@@ -197,11 +198,32 @@ module ConductanceLIFNeuronUnit_tb();
                 $display("starting input set %d", inputSet);
             end
 
-            scanWtSum = $fscanf(wtSumFile, "%d,%d\n", ExWeightSum, InWeightSum);
+            scanWtSum = $fscanf(wtSumFile, "%d,%d,%d,%d,%d\n", 
+                Taumembrane_EX, 
+                TauExCon_EX, 
+                TauInCon_EX, 
+                ExWeightSum, 
+                InWeightSum);
+                
+            // make sure to set for both types if need be
+            Taumembrane_IN = Taumembrane_EX;
+            TauExCon_IN = TauExCon_EX;
+            TauInCon_IN = TauInCon_EX;
 
             // one clock cycle to latch internally, one to latch in the testbench
             #20;
-            $fwrite(outFile, "%d,%d,%d,%d,%d,%d,%d,%d\n", inputSet, ExWeightSum, InWeightSum, Vmem, gex, gin, RefVal, SpikeBuffer);
+            $fwrite(outFile, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", 
+                inputSet, 
+                Taumembrane_EX, 
+                TauExCon_EX, 
+                TauInCon_EX, 
+                ExWeightSum, 
+                InWeightSum, 
+                Vmem, 
+                gex, 
+                gin, 
+                RefVal, 
+                SpikeBuffer);
         end
 
         $fclose(wtSumFile);
