@@ -21,11 +21,13 @@ for i = 1:length(sets)
     set_results(i) = report_results(results_file, data_bline(indicies,:), data_opt(indicies,:));
 end
 
-fig = figure;
-hold on;
-plot([set_results.Taumem], [set_results.Vmem_rms_error]);
-plot([set_results.Taumem], [set_results.gex_rms_error]);
-plot([set_results.Taumem], [set_results.gin_rms_error]);
+if length(sets) > 1
+    fig = figure;
+    hold on;
+    plot([set_results.Taumem], [set_results.Vmem_rms_error]);
+    plot([set_results.Taumem], [set_results.gex_rms_error]);
+    plot([set_results.Taumem], [set_results.gin_rms_error]);
+end
 
 %% Helpers %%
 function fields = extract_fields(data)
@@ -86,7 +88,7 @@ function plot_results(outfile, data_bline, data_opt)
     hold on;
     plot(bline.Vmem);
     plot(opt.Vmem);
-    title("Vmem (membrane potential)");
+    title("Output Vmem (membrane potential after thresholding)");
 
     subplot(numPlots,1,plotNum);
     plotNum=plotNum+1;
