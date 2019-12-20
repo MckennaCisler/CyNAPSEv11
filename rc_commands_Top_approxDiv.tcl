@@ -6,7 +6,7 @@ puts "================="
 # config
 #--------------
 set DESIGN Top
-set OUT_DIR "./genus_out_$DESIGN"
+set OUT_DIR "./genus_out_Top_syn_tb_approxDiv_no_tb"
 set_db stdout_log $OUT_DIR/genus_$DESIGN.log
 set_db command_log $OUT_DIR/genus_$DESIGN.cmd
 # effort to use in synthesis; express = fastest, medium = default
@@ -18,7 +18,6 @@ set_db library { gscl45nm.lib }
 
 #load and elaborate the design
 #------------------------------
-#read_hdl Top_syn_tb.v
 read_hdl Top.v 
 read_hdl InputFIFO.v
 read_hdl InputRouter.v
@@ -26,13 +25,16 @@ read_hdl InternalRouter.v
 read_hdl NeuronUnit.v
 read_hdl SysControl.v
 read_hdl ConductanceLIFNeuronUnit.v
-read_hdl GexLeakUnit.v
-read_hdl GinLeakUnit.v
-read_hdl VmemLeakUnit.v
-read_hdl EPSCUnit.v
-read_hdl IPSCUnit.v
-read_hdl ThresholdUnit.v
-read_hdl SynapticIntegrationUnit.v
+read_hdl GexLeakUnit_approxDiv.v
+read_hdl GinLeakUnit_approxDiv.v
+read_hdl VmemLeakUnit_approxDiv.v
+read_hdl EPSCUnit_approxDiv.v
+read_hdl IPSCUnit_approxDiv.v
+read_hdl ThresholdUnit_approxDiv.v
+read_hdl SynapticIntegrationUnit_approxDiv.v
+read_hdl approx_divider.v
+read_hdl DRUMk_n_m_s.v
+read_hdl fixed_point_recip.v
 
 elaborate $DESIGN
 check_design $DESIGN -unresolved
