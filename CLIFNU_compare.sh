@@ -4,7 +4,7 @@ MATLAB=0
 # config
 BASELINE_FILES="ConductanceLIFNeuronUnit_tb.v ConductanceLIFNeuronUnit.v GexLeakUnit.v GinLeakUnit.v VmemLeakUnit.v EPSCUnit.v IPSCUnit.v ThresholdUnit.v SynapticIntegrationUnit.v"
 OPT_FILES_MULT="ConductanceLIFNeuronUnit_tb.v ConductanceLIFNeuronUnit.v GexLeakUnit_approxMult.v GinLeakUnit_approxMult.v VmemLeakUnit_approxMult.v EPSCUnit_approxMult.v IPSCUnit_approxMult.v ThresholdUnit_approxMult.v SynapticIntegrationUnit_approxMult.v DRUM8_64_64_s.v"
-OPT_FILES_DIV="ConductanceLIFNeuronUnit_tb.v ConductanceLIFNeuronUnit.v GexLeakUnit_approxDiv.v GinLeakUnit_approxDiv.v VmemLeakUnit_approxDiv.v EPSCUnit_approxDiv.v IPSCUnit_approxDiv.v ThresholdUnit_approxDiv.v SynapticIntegrationUnit_approxDiv.v approx_divider.v DRUMk_n_m_s.v"
+OPT_FILES_DIV="ConductanceLIFNeuronUnit_tb.v ConductanceLIFNeuronUnit.v GexLeakUnit_approxDiv.v GinLeakUnit_approxDiv.v VmemLeakUnit_approxDiv.v EPSCUnit_approxDiv.v IPSCUnit_approxDiv.v ThresholdUnit_approxDiv.v SynapticIntegrationUnit_approxDiv.v approx_divider.v DRUMk_n_m_s.v fixed_point_recip.v"
 
 # change to set which implementation to compare with the baseline 
 # OPT_FILES=$OPT_FILES_MULT
