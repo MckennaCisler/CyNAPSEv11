@@ -13,7 +13,7 @@
 
 
 `timescale 1ns/1ns
-module Top_syn_tb_v2
+module Top_syn_tb
 #(
 	//Global Timer resolution and limits
 	parameter DELTAT_WIDTH = 4,																			//Resolution upto 0.1 ms can be supported 
