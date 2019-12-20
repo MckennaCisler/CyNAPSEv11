@@ -7,7 +7,12 @@ gscl45nm.*
 
 cynapse_tb
 cynapse_neuron_tb
+baseline_neuron_tb
+optimized_neuron_tb
 a.out
+
 binaries/
 OneExampleTestDump*
 ConductanceLIFNeuronUnit_tb_out.csv
+
+*~

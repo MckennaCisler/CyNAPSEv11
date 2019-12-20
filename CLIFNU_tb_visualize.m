@@ -1,12 +1,13 @@
 data = csvread("ConductanceLIFNeuronUnit_tb_out.csv");
 
-ExWeightSum = data(:,1);
-InWeightSum = data(:,2);
-Vmem = data(:,3);
-gex = data(:,4);
-gin = data(:,5);
-RefVal = data(:,6);
-Spikes = data(:,7);
+inputSet = data(:,1);
+ExWeightSum = data(:,2);
+InWeightSum = data(:,3);
+Vmem = data(:,4);
+gex = data(:,5);
+gin = data(:,6);
+RefVal = data(:,7);
+Spikes = data(:,8);
 
 numPlots = 7;
 plotNum = 1;

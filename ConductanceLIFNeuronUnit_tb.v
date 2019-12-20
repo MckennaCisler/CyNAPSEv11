@@ -12,8 +12,8 @@
 `timescale 1ns/1ns
 module ConductanceLIFNeuronUnit_tb();
 
-    localparam WTSUM_FILE = "test_data/CLIFN_tb_wtSums_periodic_alternating.csv";
-    localparam OUTFILE = "ConductanceLIFNeuronUnit_tb_out.csv";
+    localparam WTSUM_FILE = "test_data/CLIFNU_tb_wtSums.csv";
+    localparam OUTFILE = "CLIFNU_tb_out.csv";
     reg NeuronType = 0; // 0 = excitatory, 1 = inhibitory
 
     //Global Timer resolution and limits
@@ -142,11 +142,15 @@ module ConductanceLIFNeuronUnit_tb();
         .RefValOut(RefValOut)
     );
 
-    integer scanWtSum;
+    integer scanWtSum; // needed to compile; unused
     integer wtSumFile, outFile;
+    integer inputSet, nextInputSet;
 
     // Init
     initial begin 
+        inputSet = 0;
+        nextInputSet = 0;
+
         Clock = 0;
         Reset = 0;
         UpdateEnable = 0;
@@ -178,13 +182,26 @@ module ConductanceLIFNeuronUnit_tb();
         #20
         Reset = 0;
         UpdateEnable = 1;
+        $display("starting input set %d", inputSet);
 
         while (!$feof(wtSumFile)) begin
+            scanWtSum = $fscanf(wtSumFile, "%d,", nextInputSet);
+            if (inputSet != nextInputSet) begin
+                inputSet = nextInputSet;
+                // reset for the new input set
+                Reset = 1;
+                UpdateEnable = 0;
+                #20
+                Reset = 0;
+                UpdateEnable = 1;
+                $display("starting input set %d", inputSet);
+            end
+
             scanWtSum = $fscanf(wtSumFile, "%d,%d\n", ExWeightSum, InWeightSum);
 
             // one clock cycle to latch internally, one to latch in the testbench
             #20;
-            $fwrite(outFile, "%d,%d,%d,%d,%d,%d,%d\n", ExWeightSum, InWeightSum, Vmem, gex, gin, RefVal, SpikeBuffer);
+            $fwrite(outFile, "%d,%d,%d,%d,%d,%d,%d,%d\n", inputSet, ExWeightSum, InWeightSum, Vmem, gex, gin, RefVal, SpikeBuffer);
         end
 
         $fclose(wtSumFile);

@@ -6,7 +6,9 @@ puts "================="
 # config
 #--------------
 set DESIGN ConductanceLIFNeuronUnit
-set OUT_DIR "./genus_out"
+set OUT_DIR "./genus_out_CLIFNU_approxMult"
+set_db stdout_log $OUT_DIR/genus_CLIFNU.log
+set_db command_log $OUT_DIR/genus_CLIFNU.cmd
 # effort to use in synthesis; express = fastest, medium = default
 set_db syn_global_effort express
 
