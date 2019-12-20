@@ -70,7 +70,7 @@ def _single_const_freq(length, wt, period):
     return with_periods(period_repeated, wt_repeated)
 
 def single_constant_freq_ex_in():
-    length = 200
+    length = 100
     wts_ex = _single_const_freq(length, 23 << DATA_WIDTH_FRAC, 3)
     wts_in = _single_const_freq(length, 23 << DATA_WIDTH_FRAC, 6)
     return _combine_in_ex(wts_ex, wts_in)
@@ -81,7 +81,7 @@ def _single_rand_freq(min_length, wt, min_period, max_period):
     return with_periods(periods, wt_repeated)
 
 def single_random_freq_ex_in():
-    min_length = 200
+    min_length = 100
     np.random.seed(1000)
     wts_ex = _single_rand_freq(min_length, 23 << DATA_WIDTH_FRAC, 1, 30)
     wts_in = _single_rand_freq(min_length, 23 << DATA_WIDTH_FRAC, 1, 30)
@@ -128,20 +128,20 @@ def _many_random_freq(min_length, num, min_wt, max_wt, min_period, max_period):
 
 def many_random_freq_ex_in():
     min_length = 400
-    num_ex_inputs = 8
-    num_in_inputs = 3
+    num_ex_inputs = 5
+    num_in_inputs = 5
     min_wt = 5 << DATA_WIDTH_FRAC
     max_wt = 23 << DATA_WIDTH_FRAC
     min_period = 1
     max_period = 30
-    np.random.seed(1713914112)
+    np.random.seed(8138013)
 
     wt_sums_ex = _many_const_freq(min_length, num_ex_inputs, min_wt, max_wt, min_period, max_period)
     wt_sums_in = _many_const_freq(min_length, num_ex_inputs, min_wt, max_wt, min_period, max_period)
     return _combine_in_ex(wt_sums_ex, wt_sums_in)
 
 ############ Main ############
-vary_taumem = True
+vary_taumem = False
 
 sets = []
 if vary_taumem:
@@ -172,11 +172,11 @@ else:
     sets = [
         # periodic_simul(),
         # periodic_alternating(),
-        random_val_ex_in(),
-        single_constant_freq_ex_in(),
+        # single_constant_freq_ex_in(),
         single_random_freq_ex_in(),
-        many_constant_freq_ex_in(),
-        many_random_freq_ex_in()
+        # many_constant_freq_ex_in(),
+        # many_random_freq_ex_in(),
+        # random_val_ex_in(),
     ]
 
     for i in range(len(sets)):
