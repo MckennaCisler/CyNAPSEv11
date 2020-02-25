@@ -19,7 +19,7 @@ COMPARE_SCRIPT_FIG="CLIFNU_tb_compare.png"
 
 # modify this file to change what the generated input sequences look like
 cd test_data/
-./generate_CLIFNU_tb_wtSums.py
+python generate_CLIFNU_tb_wtSums.py
 cd ..
 
 sed "s/localparam WTSUM_FILE = \".*\"/localparam WTSUM_FILE = \"$WTSUM_FILE\"/" ConductanceLIFNeuronUnit_tb.v -i

@@ -1,5 +1,4 @@
-
-
+## Partial (outdated) port of CLIFNU_tb_compare.m to Python
 
 data_bline = csvread("ConductanceLIFNeuronUnit_tb_out_baseline.csv")
 data_opt = csvread("ConductanceLIFNeuronUnit_tb_out_opt.csv")

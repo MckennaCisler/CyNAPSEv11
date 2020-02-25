@@ -1,8 +1,19 @@
 close all;
 
-data_bline = csvread("CLIFNU_tb_out_baseline.csv");
-data_opt = csvread("CLIFNU_tb_out_opt.csv");
-results_file = fopen('CLIFNU_tb_compare_out.txt','w');
+%% Configuration %%
+% inputs
+baseline_data_filename = "CLIFNU_tb_out_baseline.csv";
+optimized_data_filename = "CLIFNU_tb_out_opt.csv";
+% outputs
+results_filename = "CLIFNU_tb_compare_out.txt";
+full_plot_filename = "CLIFNU_tb_compare.png";
+simple_plot_filename = "CLIFNU_tb_compare_simple.png";
+
+%% Setup %%
+
+data_bline = csvread(baseline_data_filename);
+data_opt = csvread(optimized_data_filename);
+results_file = fopen(results_filename,'w');
 
 bline = extract_fields(data_bline);
 opt = extract_fields(data_opt);
@@ -10,8 +21,8 @@ opt = extract_fields(data_opt);
 assert(all(unique(bline.inputSet) == unique(opt.inputSet)));
 
 %% Analysis %%
-plot_results("CLIFNU_tb_compare.png", data_bline, data_opt, false);
-plot_results("CLIFNU_tb_compare_simple.png", data_bline, data_opt, true);
+plot_results(full_plot_filename, data_bline, data_opt, false);
+plot_results(simple_plot_filename, data_bline, data_opt, true);
 
 report_results(results_file, data_bline, data_opt);
 
@@ -28,6 +39,9 @@ if length(sets) > 1
     plot([set_results.Taumem], [set_results.Vmem_rms_error]);
     plot([set_results.Taumem], [set_results.gex_rms_error]);
     plot([set_results.Taumem], [set_results.gin_rms_error]);
+    xlabel("Taumem");
+    ylabel("Absolute RMS error");
+    legend("V_{mem} RMS error", "g_{ex} RMS error", "g_{in} RMS error");
 end
 
 %% Helpers %%
@@ -52,13 +66,16 @@ function plot_results(outfile, data_bline, data_opt, simplify)
 
     if simplify 
         numPlots = 4;
+        figName = "Neuron Unit Activity Compared over Time";
     else
         numPlots = 7;
+        figName = "Neuron Unit Activity Compared over Time (incl. internal signals)";
     end
     plotNum = 1;
     %fig = figure;
-    fig = figure("position",[0, 0, 1000, 800]);
-
+    fig = figure("position",[0, 0, 1000, 800], "Name", figName);
+    sgtitle(figName);
+        
     subplot(numPlots,1,plotNum);
     plotNum=plotNum+1;
     hold on;

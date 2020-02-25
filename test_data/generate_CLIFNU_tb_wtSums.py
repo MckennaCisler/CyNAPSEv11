@@ -140,12 +140,15 @@ def many_random_freq_ex_in():
     wt_sums_in = _many_const_freq(min_length, num_ex_inputs, min_wt, max_wt, min_period, max_period)
     return _combine_in_ex(wt_sums_ex, wt_sums_in)
 
-############ Main ############
+
+####### Configuration #######
+### This setting controls whether to generate many duplications
+### of the particular input set with variations in the various 
+### membrane potentials of the neuron; see below for further configuration
 vary_taumem = False
 
-sets = []
 if vary_taumem:
-    # change to change which sequence to use
+    ### Change to change which sequence to use while varying membrane potentials
     # sequence = periodic_simul()
     # sequence = periodic_alternating()
     # sequence = random_val_ex_in()
@@ -158,18 +161,10 @@ if vary_taumem:
     taugex_range = [max(1, taumem/100) for taumem in taumem_range]
     taugin_range = [taugex*2 for taugex in taugex_range]
 
-    assert len(taumem_range) == len(taugex_range) and len(taumem_range) == len(taugin_range)
-
-    for i in range(len(taumem_range)):
-        rows = prepend_tuple(sequence, (taumem_range[i], taugex_range[i], taugin_range[i]))
-        sets.append(rows)
-    
 else:
-    default_taumem = 100
-    default_taugex = 1
-    default_taugin = 2
-
-    sets = [
+    ### Change to change which single waveform or set of input waveforms is
+    ### fed as input into the neuron.
+    input_sets = [
         # periodic_simul(),
         # periodic_alternating(),
         # single_constant_freq_ex_in(),
@@ -178,6 +173,23 @@ else:
         # many_random_freq_ex_in(),
         # random_val_ex_in(),
     ]
+
+    ### Change these to change the (constant) membrane potential to use across
+    ### the generated input waveforms.
+    default_taumem = 100
+    default_taugex = 1
+    default_taugin = 2
+
+############ Main ############
+sets = []
+if vary_taumem:
+    assert len(taumem_range) == len(taugex_range) and len(taumem_range) == len(taugin_range)
+
+    for i in range(len(taumem_range)):
+        rows = prepend_tuple(sequence, (taumem_range[i], taugex_range[i], taugin_range[i]))
+        sets.append(rows)
+else:
+    sets = input_sets
 
     for i in range(len(sets)):
         sets[i] = prepend_tuple(sets[i], (default_taumem, default_taugex, default_taugin))
